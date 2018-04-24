@@ -3735,27 +3735,24 @@ description."
   "Module to enable YASnippet snippets."
   (pcase command
     (`global-init
-     (require 'yasnippet)
+     ;; yasnippet-snippets requires YASnippet and will load it for us
+     (require 'yasnippet-snippets)
      (elpy-modules-remove-modeline-lighter 'yas-minor-mode)
 
-     ;; We provide some YASnippet snippets. Add them.
+     ;; yasnippet-snippets.el has imported Elpy's snippets, and
+     ;; it sets yasnippet-snippets-dir.
 
-     ;; yas-snippet-dirs can be a string for a single directory. Make
-     ;; sure it's a list in that case so we can add our own entry.
-     (when (not (listp yas-snippet-dirs))
-       (setq yas-snippet-dirs (list yas-snippet-dirs)))
-     (add-to-list 'yas-snippet-dirs
-                  (concat (file-name-directory (locate-library "elpy"))
-                          "snippets/")
-                  t)
+     ;; Now reload yasnippets.
+     ;; This might be unnecessary now, but I've left it here in case
+     ;; elpy-rpc-python-command is set someplace outside of ~/.emacs.*
+     ;; python-mode/.yas-setup.el makes use of this variable.
+     ;; It also adds a python-mode hook that:
+     ;;    (set (make-local-variable 'yas-indent-line) 'fixed))
+     ;; If elpy supports editing projects in multiple different virtualenvs
+     ;; simultaneously, with many buffer-local elpy-rpc-python-command,
+     ;; then further work might be necessary.
 
-     ;; Now load yasnippets.
      (yas-reload-all))
-    (`global-stop
-     (setq yas-snippet-dirs
-           (delete (concat (file-name-directory (locate-library "elpy"))
-                           "snippets/")
-                   yas-snippet-dirs)))
     (`buffer-init
      (yas-minor-mode 1))
     (`buffer-stop
